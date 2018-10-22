@@ -1,0 +1,55 @@
+import geopandas as gpd
+import xarray as xr
+import numpy as np
+import pandas as pd
+from pandas import isnull
+from pathlib import Path
+import os, time
+import matplotlib.pyplot as plt
+
+##get current directory
+cwd_old = os.getcwd()
+#change current directory if needed
+path    = Path("C:/Users/wb433125/OneDrive - WBG/Supply chains/Climate/data/")
+os.chdir(path)
+cwd_new = os.getcwd()
+print(cwd_new)
+
+# import capital coordinates
+cap_co_file  = cwd_new+'/'+"capital_coordinates.csv"
+cap_co = pd.read_csv(cap_co_file, index_col=['Country'], encoding="utf8")
+print(cap_co.head())
+
+cities = pd.DataFrame([])
+
+#for clim in ['wind-u-','wind-v-','temp','precip']
+
+for index, row in cap_co.iterrows(): #loop for each city
+    cities = cities.append(cap_co)
+    print(index)
+    all_years = pd.DataFrame([]) #generate df for storing complete time series
+    #loop for years
+    years   = [str(x) for x in range(2017,2021)]
+    #print(years)
+    for yr in years:
+        print(yr)
+        wind    = cwd_new+'/'+"wind-u-"+yr+".nc" #load file
+
+    #extract time series
+        ds      = xr.open_dataset(wind)
+        dsloc   = ds.sel(longitude=row['Longitude'],latitude=row['Latitude'],method='nearest') #Tokyo
+        #print(dsloc)
+        dsloc_np    = dsloc.to_dataframe() #convert to np dataframe
+        dsloc_np.shape
+        #print(dsloc_np)
+        all_years = all_years.append(dsloc_np) #append year by year
+        #print(all_years.head())
+
+        #plot extracted time series
+        #all_years.shape
+        #plt.plot(all_years['u10'])
+
+    #exit()
+    #save out time series
+    all_years.to_csv(cwd_new + '/wind_extracted/'+index+'_wind-u_all_years.csv',encoding="utf-8")
+    print('Done with extracting', index,'!!')
